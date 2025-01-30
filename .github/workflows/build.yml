@@ -19,10 +19,8 @@ jobs:
     
     - name: Clone pyzk repository
       run: |
-        dir
         echo "Cloning pyzk repository..."
         git clone https://github.com/fananimi/pyzk.git
-        dir
         dir pyzk
       shell: cmd
     
@@ -39,13 +37,17 @@ jobs:
         
     - name: Install pyzk
       run: |
-        echo "Current directory:"
-        dir
-        echo "Installing pyzk..."
         cd pyzk
-        dir
         python setup.py install
         cd ..
+      shell: cmd
+
+    # Add cleanup step after PyInstaller build
+    - name: Cleanup pyzk
+      if: always()  # Run this step even if previous steps fail
+      run: |
+        echo "Cleaning up pyzk directory..."
+        rmdir /s /q pyzk
       shell: cmd
         
     - name: Cache pip packages
