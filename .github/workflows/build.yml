@@ -15,12 +15,12 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'  # Using Python 3.9 for better compatibility
+        python-version: '3.9'
         
     - name: Install dependencies
       run: |
@@ -32,7 +32,7 @@ jobs:
         pip install git+https://github.com/fananimi/pyzk.git
         
     - name: Cache pip packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~\AppData\Local\pip\Cache
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -49,18 +49,15 @@ jobs:
                    main.py
 
     - name: Upload Build Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: 360ClockIn_Synchronizer
         path: dist/360ClockIn_Synchronizer.exe
         
     - name: Upload to Release
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/360ClockIn_Synchronizer.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: dist/360ClockIn_Synchronizer.exe
-        asset_name: 360ClockIn_Synchronizer.exe
-        asset_content_type: application/octet-stream
