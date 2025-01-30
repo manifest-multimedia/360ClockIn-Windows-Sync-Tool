@@ -136,74 +136,88 @@ class SyncApp(QWidget):
             print(f"Error loading settings: {e}")
 
     def get_db_connection(self):
-        db_config = {
-            'host': self.config['host'],
-            'user': self.config['user'],
-            'password': self.config['password'],
-            'database': self.config['database']
-        }
-        db_type = self.config['db_type']
-        
         try:
+            db_config = {
+                'host': self.config['host'],
+                'user': self.config['user'],
+                'password': self.config['password'],
+                'database': self.config['database']
+            }
+            db_type = self.config['db_type']
+            
             if db_type == 'mysql':
                 return mysql.connector.connect(**db_config)
             else:  # mariadb
                 return mariadb.connect(**db_config)
-        except (mysql.connector.Error, mariadb.Error) as e:
+        except Exception as e:
+            print(f"Database connection error: {str(e)}")  # Add logging
             raise Exception(f"Database connection failed: {e}")
 
     def test_database_connection(self):
-        self.config['host'] = self.host_input.text()
-        self.config['user'] = self.user_input.text()
-        self.config['password'] = self.password_input.text()
-        self.config['database'] = self.database_input.text()
-        self.config['db_type'] = self.db_type_selector.currentText().lower()
-
-        if not all(self.config.values()):
-            QMessageBox.warning(self, 'Error', 'Please fill in all fields.')
-            return
-
         try:
+            self.config['host'] = self.host_input.text()
+            self.config['user'] = self.user_input.text()
+            self.config['password'] = self.password_input.text()
+            self.config['database'] = self.database_input.text()
+            self.config['db_type'] = self.db_type_selector.currentText().lower()
+
+            if not all(self.config.values()):
+                QMessageBox.warning(self, 'Error', 'Please fill in all fields.')
+                return
+
             connection = self.get_db_connection()
             connection.close()
             QMessageBox.information(self, 'Success', 'Database connection successful!')
         except Exception as e:
-            QMessageBox.critical(self, 'Error', str(e))
+            QMessageBox.critical(self, 'Error', f"Database connection failed: {str(e)}")
+            print(f"Database test error: {str(e)}")  # Add logging
 
     def save_configuration(self):
-        self.config['host'] = self.host_input.text()
-        self.config['user'] = self.user_input.text()
-        self.config['password'] = self.password_input.text()
-        self.config['database'] = self.database_input.text()
-        self.config['db_type'] = self.db_type_selector.currentText().lower()
-        self.interval = self.interval_input.value()
-
-        if not all(self.config.values()):
-            QMessageBox.warning(self, 'Error', 'Please fill in all fields.')
-            return
-
         try:
+            self.config['host'] = self.host_input.text()
+            self.config['user'] = self.user_input.text()
+            self.config['password'] = self.password_input.text()
+            self.config['database'] = self.database_input.text()
+            self.config['db_type'] = self.db_type_selector.currentText().lower()
+            self.interval = self.interval_input.value()
+
+            if not all(self.config.values()):
+                QMessageBox.warning(self, 'Error', 'Please fill in all fields.')
+                return
+
+            # Test connection before saving
             connection = self.get_db_connection()
             connection.close()
-            QMessageBox.information(self, 'Success', 'Configuration saved successfully!')
-            
+
             # Save settings to file
-            config_to_save = self.config.copy()
-            config_to_save['interval'] = self.interval
-            with open('config.json', 'w') as f:
-                json.dump(config_to_save, f)
-            
-            self.save_config_button.setText('Update Settings')
-            
-            # After successful connection and save
-            if not self.is_syncing:
-                self.start_sync()
-                self.is_syncing = True
-                self.sync_control_button.setText('Pause Sync')
-                self.status_label.setText('Status: Running')
-                self.progress_bar.show()
+            try:
+                config_to_save = self.config.copy()
+                config_to_save['interval'] = self.interval
+                with open('config.json', 'w') as f:
+                    json.dump(config_to_save, f)
+                
+                self.save_config_button.setText('Update Settings')
+                QMessageBox.information(self, 'Success', 'Configuration saved successfully!')
+                
+                # Start sync in a try-except block
+                try:
+                    if not self.is_syncing:
+                        self.start_sync()
+                        self.is_syncing = True
+                        self.sync_control_button.setText('Pause Sync')
+                        self.status_label.setText('Status: Running')
+                        self.progress_bar.show()
+                except Exception as e:
+                    QMessageBox.critical(self, 'Error', f"Failed to start sync: {str(e)}")
+                    print(f"Sync start error: {str(e)}")  # Add logging
+                    
+            except Exception as e:
+                QMessageBox.critical(self, 'Error', f"Failed to save settings: {str(e)}")
+                print(f"Settings save error: {str(e)}")  # Add logging
+                
         except Exception as e:
-            QMessageBox.critical(self, 'Error', f"Failed to save settings: {str(e)}")
+            QMessageBox.critical(self, 'Error', f"Configuration error: {str(e)}")
+            print(f"Configuration error: {str(e)}")  # Add logging
 
     def start_sync(self):
         self.sync_thread = SyncThread(self.config, self.interval)
