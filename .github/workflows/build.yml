@@ -17,6 +17,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Clone pyzk repository
+      run: |
+        dir
+        echo "Cloning pyzk repository..."
+        git clone https://github.com/fananimi/pyzk.git
+        dir
+        dir pyzk
+      shell: cmd
+    
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -30,9 +39,14 @@ jobs:
         
     - name: Install pyzk
       run: |
+        echo "Current directory:"
+        dir
+        echo "Installing pyzk..."
         cd pyzk
+        dir
         python setup.py install
         cd ..
+      shell: cmd
         
     - name: Cache pip packages
       uses: actions/cache@v3
