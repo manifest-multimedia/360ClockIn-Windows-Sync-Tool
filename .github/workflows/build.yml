@@ -17,15 +17,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Clone pyzk repository
+    - name: Create pyzk directory and download
       run: |
-        echo "Cloning pyzk repository..."
-        git clone https://github.com/fananimi/pyzk.git
-      shell: cmd
-
-    - name: Remove .git from pyzk
-      run: |
-        rmdir /s /q pyzk\.git
+        mkdir temp_pyzk
+        cd temp_pyzk
+        curl -L -o pyzk.zip https://github.com/fananimi/pyzk/archive/refs/heads/master.zip
+        tar -xf pyzk.zip
+        xcopy /E /I pyzk-master\zk ..\pyzk\zk\
+        cd ..
+        rmdir /S /Q temp_pyzk
       shell: cmd
     
     - name: Set up Python
@@ -47,6 +47,16 @@ jobs:
                    --add-data="config.json;." `
                    --add-data="pyzk/zk;zk" `
                    --paths="pyzk" `
+                   --hidden-import=pyzk `
+                   --hidden-import=pyzk.zk `
+                   --hidden-import=pyzk.zk.base `
+                   --hidden-import=pyzk.zk.const `
+                   --hidden-import=pyzk.zk.attendance `
+                   --hidden-import=pyzk.zk.exception `
+                   --hidden-import=pyzk.zk.user `
+                   --hidden-import=pyzk.zk.finger `
+                   --hidden-import=pyzk.zk.terminal `
+                   --hidden-import=pyzk.zk.struct `
                    main.py
 
     - name: Upload Build Artifact
