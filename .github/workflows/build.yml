@@ -16,6 +16,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+    
+    - name: Clone pyzk repository
+      run: |
+        git clone https://github.com/fananimi/pyzk.git
     
     - name: Set up Python
       uses: actions/setup-python@v5
