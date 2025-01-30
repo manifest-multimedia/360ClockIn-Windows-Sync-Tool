@@ -1,0 +1,4 @@
+PyQt5
+mysql-connector-python
+mariadb
+git+https://github.com/fananimi/pyzk.git 
