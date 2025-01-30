@@ -137,12 +137,17 @@ class SyncApp(QWidget):
 
     def get_db_connection(self):
         try:
+            # Create db_config with required fields
             db_config = {
                 'host': self.config['host'],
                 'user': self.config['user'],
-                'password': self.config['password'],
                 'database': self.config['database']
             }
+            
+            # Add password only if it's not empty
+            if self.config['password']:
+                db_config['password'] = self.config['password']
+                
             db_type = self.config['db_type']
             
             if db_type == 'mysql':
@@ -161,8 +166,10 @@ class SyncApp(QWidget):
             self.config['database'] = self.database_input.text()
             self.config['db_type'] = self.db_type_selector.currentText().lower()
 
-            if not all(self.config.values()):
-                QMessageBox.warning(self, 'Error', 'Please fill in all fields.')
+            # Check only required fields
+            required_fields = ['host', 'user', 'database', 'db_type']
+            if not all(self.config[field] for field in required_fields):
+                QMessageBox.warning(self, 'Error', 'Please fill in all required fields (Host, User, Database).')
                 return
 
             connection = self.get_db_connection()
@@ -170,7 +177,7 @@ class SyncApp(QWidget):
             QMessageBox.information(self, 'Success', 'Database connection successful!')
         except Exception as e:
             QMessageBox.critical(self, 'Error', f"Database connection failed: {str(e)}")
-            print(f"Database test error: {str(e)}")  # Add logging
+            print(f"Database test error: {str(e)}")
 
     def save_configuration(self):
         try:
@@ -181,8 +188,10 @@ class SyncApp(QWidget):
             self.config['db_type'] = self.db_type_selector.currentText().lower()
             self.interval = self.interval_input.value()
 
-            if not all(self.config.values()):
-                QMessageBox.warning(self, 'Error', 'Please fill in all fields.')
+            # Check only required fields
+            required_fields = ['host', 'user', 'database', 'db_type']
+            if not all(self.config[field] for field in required_fields):
+                QMessageBox.warning(self, 'Error', 'Please fill in all required fields (Host, User, Database).')
                 return
 
             # Test connection before saving
@@ -209,15 +218,15 @@ class SyncApp(QWidget):
                         self.progress_bar.show()
                 except Exception as e:
                     QMessageBox.critical(self, 'Error', f"Failed to start sync: {str(e)}")
-                    print(f"Sync start error: {str(e)}")  # Add logging
+                    print(f"Sync start error: {str(e)}")
                     
             except Exception as e:
                 QMessageBox.critical(self, 'Error', f"Failed to save settings: {str(e)}")
-                print(f"Settings save error: {str(e)}")  # Add logging
+                print(f"Settings save error: {str(e)}")
                 
         except Exception as e:
             QMessageBox.critical(self, 'Error', f"Configuration error: {str(e)}")
-            print(f"Configuration error: {str(e)}")  # Add logging
+            print(f"Configuration error: {str(e)}")
 
     def start_sync(self):
         self.sync_thread = SyncThread(self.config, self.interval)
