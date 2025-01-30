@@ -26,10 +26,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
-        pip install PyQt5
-        pip install mysql-connector-python
-        pip install mariadb
-        pip install git+https://github.com/fananimi/pyzk.git
+        pip install -r requirements.txt
+        
+    - name: Install pyzk
+      run: |
+        cd pyzk
+        python setup.py install
+        cd ..
         
     - name: Cache pip packages
       uses: actions/cache@v3
@@ -44,8 +47,8 @@ jobs:
         pyinstaller --name="360ClockIn_Synchronizer" `
                    --windowed `
                    --onefile `
-                   --icon=assets/icon.ico `
                    --add-data="config.json;." `
+                   --add-data="pyzk/zk;zk" `
                    main.py
 
     - name: Upload Build Artifact
